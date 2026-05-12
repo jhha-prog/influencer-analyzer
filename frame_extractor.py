@@ -16,8 +16,8 @@ def has_audio_stream(video_path: str) -> bool:
 def extract_audio(video_path: str, output_path: str) -> bool:
     """오디오 추출. 성공 시 True 반환."""
     result = subprocess.run(
-        ['ffmpeg', '-i', video_path, '-q:a', '0', '-map', 'a',
-         output_path, '-y', '-loglevel', 'error'],
+        ['ffmpeg', '-y', '-loglevel', 'error', '-i', video_path,
+         '-q:a', '0', '-map', 'a', output_path],
         capture_output=True
     )
     return result.returncode == 0 and os.path.getsize(output_path) > 0
@@ -33,8 +33,8 @@ def extract_frames_at_timestamps(video_path: str, timestamps: list, output_dir: 
     for ts in timestamps:
         output_path = os.path.join(output_dir, f'frame_{ts}s.jpg')
         proc = subprocess.run(
-            ['ffmpeg', '-ss', str(ts), '-i', video_path,
-             '-vframes', '1', '-q:v', '2', output_path, '-y', '-loglevel', 'error'],
+            ['ffmpeg', '-y', '-loglevel', 'error', '-ss', str(ts),
+             '-i', video_path, '-vframes', '1', '-q:v', '2', output_path],
             capture_output=True
         )
         if proc.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
