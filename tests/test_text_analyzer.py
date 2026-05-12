@@ -10,9 +10,10 @@ Get 20% off today only - link in bio!
 def test_analyze_text_returns_required_keys():
     mock_response = MagicMock()
     mock_response.text = '{"discount": "O(초반)", "problem": "O(초반)", "tone": "뷰티 노하우"}'
+    mock_client = MagicMock()
+    mock_client.models.generate_content.return_value = mock_response
 
-    with patch('text_analyzer._get_model') as mock_model:
-        mock_model.return_value.generate_content.return_value = mock_response
+    with patch('text_analyzer._get_client', return_value=mock_client):
         result = analyze_text(SAMPLE_TRANSCRIPT)
 
     assert 'discount_appeal' in result
@@ -22,9 +23,10 @@ def test_analyze_text_returns_required_keys():
 def test_analyze_text_no_discount():
     mock_response = MagicMock()
     mock_response.text = '{"discount": "X", "problem": "O(초반)", "tone": "ASMR형"}'
+    mock_client = MagicMock()
+    mock_client.models.generate_content.return_value = mock_response
 
-    with patch('text_analyzer._get_model') as mock_model:
-        mock_model.return_value.generate_content.return_value = mock_response
+    with patch('text_analyzer._get_client', return_value=mock_client):
         result = analyze_text("No discount here, just skincare tips.")
 
     assert result['discount_appeal'] == 'X'
