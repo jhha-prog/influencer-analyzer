@@ -23,7 +23,8 @@ def process_video(url: str, product_category: str = '') -> dict:
         transcript = ''
         if audio_exists:
             audio_path = os.path.join(tmpdir, 'audio.mp3')
-            extract_audio(video_path, audio_path)
+            if not extract_audio(video_path, audio_path):
+                raise RuntimeError('오디오 추출 실패 — ffmpeg 오류')
             transcript = transcribe(audio_path)
 
         duration = get_video_duration(video_path)

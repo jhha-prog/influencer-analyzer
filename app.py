@@ -65,12 +65,11 @@ if 'results' in st.session_state and st.session_state['results']:
                 '할인소구', '초반문제제시', '콘텐츠톤', '제품등장타이밍', '전체플로우']
     export_df = edited_df[csv_cols]
 
-    csv_buffer = StringIO()
-    export_df.to_csv(csv_buffer, index=False, encoding='utf-8-sig')
+    csv_bytes = export_df.to_csv(index=False).encode('utf-8-sig')
 
     st.download_button(
         label='📥 CSV 다운로드 (구글 시트에 붙여넣기용)',
-        data=csv_buffer.getvalue().encode('utf-8-sig'),
+        data=csv_bytes,
         file_name='influencer_analysis.csv',
         mime='text/csv',
     )
