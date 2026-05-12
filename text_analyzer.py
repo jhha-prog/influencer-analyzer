@@ -36,7 +36,7 @@ JSON 형식으로만 답하세요:
 - tone: 전체 콘텐츠 톤 (예: 뷰티 노하우, BnA 강조, ASMR형)"""
 
     response = client.models.generate_content(
-        model="gemini-1.5-flash",
+        model="gemini-2.0-flash",
         contents=prompt
     )
     raw = re.sub(r"```json\n?|\n?```", "", response.text.strip()).strip()
