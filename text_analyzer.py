@@ -10,10 +10,7 @@ _client = None
 def _get_client():
     global _client
     if _client is None:
-        _client = genai.Client(
-            api_key=os.environ["GEMINI_API_KEY"],
-            http_options={"api_version": "v1"},
-        )
+        _client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     return _client
 
 
@@ -36,7 +33,7 @@ JSON 형식으로만 답하세요:
 - tone: 전체 콘텐츠 톤 (예: 뷰티 노하우, BnA 강조, ASMR형)"""
 
     response = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         contents=prompt
     )
     raw = re.sub(r"```json\n?|\n?```", "", response.text.strip()).strip()
