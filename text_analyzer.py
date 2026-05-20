@@ -1,10 +1,13 @@
 import os
 import json
 import re
+import time
 from google import genai
 from google.genai import types
 
 _client = None
+
+MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-flash-lite-latest"]
 
 
 def _get_client():
@@ -14,8 +17,24 @@ def _get_client():
     return _client
 
 
-def analyze_text(transcript: str) -> dict:
+def _generate(contents, retries=3):
     client = _get_client()
+    for model in MODELS:
+        for attempt in range(retries):
+            try:
+                return client.models.generate_content(model=model, contents=contents)
+            except Exception as e:
+                msg = str(e)
+                if any(x in msg for x in ("503", "500", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED", "INTERNAL")):
+                    if attempt < retries - 1:
+                        time.sleep(3)
+                        continue
+                    break
+                raise
+    raise RuntimeError("모든 모델 응답 실패")
+
+
+def analyze_text(transcript: str) -> dict:
     prompt = f"""다음 인플루언서 영상 스크립트를 분석하세요.
 
 스크립트:
@@ -32,10 +51,7 @@ JSON 형식으로만 답하세요:
 - problem: 피부 고민/문제 제시 여부와 타이밍
 - tone: 전체 콘텐츠 톤 (예: 뷰티 노하우, BnA 강조, ASMR형)"""
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
+    response = _generate(prompt)
     raw = re.sub(r"```json\n?|\n?```", "", response.text.strip()).strip()
     try:
         data = json.loads(raw)
