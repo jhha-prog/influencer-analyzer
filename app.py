@@ -1,7 +1,7 @@
 # app.py
 import streamlit as st
 import pandas as pd
-from io import StringIO
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -33,7 +33,9 @@ if submitted:
 
     for i, url in enumerate(links):
         with status_container:
-            st.write(f'⏳ 처리 중... ({i+1}/{len(links)}) `{url[:50]}...`')
+            st.write(f'⏳ 처리 중... ({i+1}/{len(links)}) `{url[:60]}...`')
+        if i > 0:
+            time.sleep(5)
         result = process_video(url, product_category)
         results.append(result)
         progress_bar.progress((i + 1) / len(links))

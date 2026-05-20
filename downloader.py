@@ -1,9 +1,10 @@
 import yt_dlp
 import os
+import time
 import tempfile
 
 
-def download_video(url: str, output_dir: str) -> tuple:
+def download_video(url: str, output_dir: str, retries: int = 3) -> tuple:
     ydl_opts = {
         'outtmpl': os.path.join(output_dir, '%(id)s.%(ext)s'),
         'format': 'best[ext=mp4]/bestvideo[ext=mp4]+bestaudio/best',
@@ -21,14 +22,26 @@ def download_video(url: str, output_dir: str) -> tuple:
         cookie_file.close()
         ydl_opts['cookiefile'] = cookie_file.name
 
+    last_error = None
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
-            if not filename.endswith('.mp4'):
-                filename = os.path.splitext(filename)[0] + '.mp4'
-            creator = info.get('uploader') or info.get('channel') or info.get('id', 'unknown')
-        return filename, creator
+        for attempt in range(retries):
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+                    filename = ydl.prepare_filename(info)
+                    if not filename.endswith('.mp4'):
+                        filename = os.path.splitext(filename)[0] + '.mp4'
+                    creator = info.get('uploader') or info.get('channel') or info.get('id', 'unknown')
+                return filename, creator
+            except Exception as e:
+                last_error = e
+                msg = str(e).lower()
+                if 'rate' in msg or 'limit' in msg or 'login' in msg or '429' in msg:
+                    if attempt < retries - 1:
+                        time.sleep(10 * (attempt + 1))
+                        continue
+                raise
+        raise last_error
     finally:
         if cookie_file:
             os.unlink(cookie_file.name)
